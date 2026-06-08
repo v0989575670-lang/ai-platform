@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 企業知識庫暨智慧教育訓練平台 — DEMO</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --navy: #1B2A4A;
+    --navy2: #27395F;
+    --navy3: #324776;
+    --orange: #F37021;
+    --orange2: #FFA45B;
+    --orange-soft: rgba(243,112,33,0.12);
+    --bg: #0E1626;
+    --surface: #182438;
+    --surface2: #1F2E46;
+    --border: rgba(255,255,255,0.09);
+    --border-h: rgba(255,255,255,0.2);
+    --text: #E9EDF5;
+    --text-mut: #8A97AE;
+    --text-dim: #56627A;
+    --teal: #1F9E8F;
+    --danger: #FF5A6E;
+    --font: 'Noto Sans TC', sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:var(--font); background:var(--bg); color:var(--text); min-height:100vh; line-height:1.6; }
+
+  /* ===== Header ===== */
+  .header {
+    background:var(--navy); border-bottom:1px solid var(--border);
+    padding:0 28px; display:flex; align-items:center; gap:14px; height:62px;
+    position:sticky; top:0; z-index:100;
+  }
+  .logo-mark {
+    width:36px; height:36px; background:linear-gradient(135deg,var(--orange),var(--orange2));
+    border-radius:9px; display:flex; align-items:center; justify-content:center;
+    font-size:17px; font-weight:900; color:#fff; flex-shrink:0;
+  }
+  .header h1 { font-size:15px; font-weight:700; letter-spacing:.3px; }
+  .header h1 small { display:block; font-size:11px; font-weight:400; color:var(--text-mut); letter-spacing:1px; }
+  .header-right { margin-left:auto; display:flex; align-items:center; gap:10px; }
+  .api-status {
+    display:flex; align-items:center; gap:7px; font-size:12px; color:var(--text-mut);
+    padding:6px 12px; background:var(--surface2); border:1px solid var(--border);
+    border-radius:20px; cursor:pointer; transition:border-color .2s;
+  }
+  .api-status:hover { border-color:var(--border-h); }
+  .dot { width:7px; height:7px; border-radius:50%; background:var(--text-dim); }
+  .dot.ok { background:var(--teal); box-shadow:0 0 7px var(--teal); }
+  .dot.err { background:var(--danger); }
+
+  /* ===== Nav tabs ===== */
+  .nav {
+    background:var(--navy); padding:0 28px; display:flex; gap:4px;
+    border-bottom:1px solid var(--border); position:sticky; top:62px; z-index:99;
+  }
+  .nav-tab {
+    padding:13px 18px; font-size:13.5px; font-weight:500; color:var(--text-mut);
+    cursor:pointer; border-bottom:2px solid transparent; transition:all .2s;
+    display:flex; align-items:center; gap:8px; user-select:none; white-space:nowrap;
+  }
+  .nav-tab:hover { color:var(--text); }
+  .nav-tab.active { color:var(--orange2); border-bottom-color:var(--orange); }
+  .nav-tab .ti { font-size:15px; }
+  .nav-tab .badge {
+    background:var(--surface2); color:var(--text-mut); font-size:10px;
+    padding:1px 7px; border-radius:10px; border:1px solid var(--border);
+  }
+  .nav-tab.active .badge { background:var(--orange-soft); color:var(--orange2); border-color:transparent; }
+
+  .container { max-width:1080px; margin:0 auto; padding:28px 24px 60px; }
+
+  /* ===== Setup banner ===== */
+  .setup-banner {
+    background:var(--surface2); border:1px solid rgba(243,112,33,.35);
+    border-radius:12px; padding:18px 22px; margin-bottom:24px; display:none;
+  }
+  .setup-banner.show { display:block; }
+  .setup-banner h3 { font-size:14px; color:var(--orange2); margin-bottom:11px; }
+  .setup-row { display:flex; gap:10px; }
+  .setup-banner input {
+    flex:1; background:var(--bg); border:1px solid var(--border); border-radius:8px;
+    padding:10px 14px; color:var(--text); font-family:var(--mono); font-size:13px; outline:none;
+  }
+  .setup-banner input:focus { border-color:var(--orange); }
+  .key-hint { font-size:11px; color:var(--text-dim); margin-top:9px; }
+  .key-hint a { color:var(--orange2); text-decoration:none; }
+
+  /* ===== Buttons ===== */
+  .btn { padding:10px 18px; border-radius:8px; border:none; font-family:var(--font);
+    font-size:13.5px; font-weight:500; cursor:pointer; transition:all .15s; white-space:nowrap; }
+  .btn-pri { background:var(--orange); color:#fff; }
+  .btn-pri:hover { background:#ff8038; transform:translateY(-1px); }
+  .btn-pri:disabled { background:var(--surface2); color:var(--text-dim); cursor:not-allowed; transform:none; }
+  .btn-ghost { background:transparent; color:var(--text-mut); border:1px solid var(--border); }
+  .btn-ghost:hover { border-color:var(--border-h); color:var(--text); }
+  .btn-sm { padding:7px 13px; font-size:12.5px; }
+  .btn-navy { background:var(--navy3); color:#fff; }
+  .btn-navy:hover { background:#3a5288; }
+
+  /* ===== Page intro ===== */
+  .page-head { margin-bottom:22px; }
+  .page-kicker { font-size:12px; font-weight:700; color:var(--orange); letter-spacing:2px; margin-bottom:6px; }
+  .page-title { font-size:24px; font-weight:700; letter-spacing:.3px; }
+  .page-sub { font-size:13.5px; color:var(--text-mut); margin-top:6px; }
+
+  /* ===== Field ===== */
+  .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:15px; }
+  .form-full { grid-column:1/-1; }
+  .field { display:flex; flex-direction:column; gap:6px; }
+  .field label { font-size:11.5px; font-weight:500; color:var(--text-mut); letter-spacing:.5px; }
+  .field .req { color:var(--orange); margin-left:2px; }
+  .field input, .field select, .field textarea {
+    background:var(--surface); border:1px solid var(--border); border-radius:8px;
+    padding:11px 14px; color:var(--text); font-family:var(--font); font-size:14px; outline:none;
+    transition:border-color .2s, box-shadow .2s;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus {
+    border-color:var(--orange); box-shadow:0 0 0 3px var(--orange-soft);
+  }
+  .field textarea { resize:vertical; min-height:120px; line-height:1.7; }
+  .field input::placeholder, .field textarea::placeholder { color:var(--text-dim); }
+  .field-hint { font-size:11px; color:var(--text-dim); }
+
+  .section-divider { display:flex; align-items:center; gap:12px; margin:22px 0 18px; }
+  .section-divider span { font-size:11px; font-weight:700; color:var(--text-dim); letter-spacing:1px; white-space:nowrap; }
+  .section-divider::before, .section-divider::after { content:''; flex:1; height:1px; background:var(--border); }
+
+  /* ===== Checkbox cards ===== */
+  .opt-row { display:flex; gap:10px; flex-wrap:wrap; }
+  .cbx { display:flex; align-items:center; gap:8px; background:var(--surface); border:1px solid var(--border);
+    border-radius:8px; padding:8px 14px; cursor:pointer; font-size:13px; color:var(--text-mut); user-select:none; transition:all .2s; }
+  .cbx:has(input:checked) { border-color:var(--orange); background:var(--orange-soft); color:var(--text); }
+  .cbx input { display:none; }
+  .cbx .ck { width:16px; height:16px; border:1px solid var(--border); border-radius:4px; display:flex;
+    align-items:center; justify-content:center; font-size:10px; color:transparent; flex-shrink:0; transition:all .15s; }
+  .cbx:has(input:checked) .ck { background:var(--orange); border-color:var(--orange); color:#fff; }
+
+  /* ===== Dashboard cards (overview) ===== */
+  .ov-hero { background:var(--navy); border:1px solid var(--border); border-radius:16px; padding:30px 32px; margin-bottom:22px; position:relative; overflow:hidden; }
+  .ov-hero::after { content:''; position:absolute; right:-60px; top:-60px; width:220px; height:220px; background:radial-gradient(circle,rgba(243,112,33,.18),transparent 70%); }
+  .ov-hero h2 { font-size:26px; font-weight:900; letter-spacing:.5px; margin-bottom:8px; }
+  .ov-hero p { font-size:14px; color:#C7D2E5; max-width:640px; }
+  .engine-cards { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  .ecard { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:22px; cursor:pointer; transition:all .2s; position:relative; }
+  .ecard:hover { border-color:var(--orange); transform:translateY(-2px); }
+  .ecard .num { font-size:12px; font-weight:700; color:var(--orange); letter-spacing:1px; }
+  .ecard .eicon { width:52px; height:52px; border-radius:12px; background:var(--navy); display:flex; align-items:center; justify-content:center; font-size:24px; margin:10px 0 14px; }
+  .ecard h3 { font-size:16px; font-weight:700; margin-bottom:6px; }
+  .ecard p { font-size:12.5px; color:var(--text-mut); line-height:1.55; }
+  .ecard .go { margin-top:14px; font-size:12.5px; color:var(--orange2); font-weight:500; }
+  .ov-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:20px; }
+  .stat { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:18px 20px; }
+  .stat .v { font-size:30px; font-weight:900; color:var(--orange); font-family:var(--mono); }
+  .stat .l { font-size:12px; color:var(--text-mut); margin-top:3px; }
+
+  /* ===== Knowledge base ===== */
+  .kb-toolbar { display:flex; gap:10px; align-items:center; margin-bottom:18px; flex-wrap:wrap; }
+  .kb-search { flex:1; min-width:200px; background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:10px 14px; color:var(--text); font-size:13.5px; outline:none; font-family:var(--font); }
+  .kb-search:focus { border-color:var(--orange); }
+  .kb-filter { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:10px 12px; color:var(--text); font-size:13px; outline:none; font-family:var(--font); }
+  .kb-list { display:flex; flex-direction:column; gap:11px; }
+  .kb-item { background:var(--surface); border:1px solid var(--border); border-radius:11px; padding:16px 18px; transition:border-color .2s; }
+  .kb-item:hover { border-color:var(--border-h); }
+  .kb-item-head { display:flex; align-items:center; gap:10px; margin-bottom:7px; }
+  .kb-cat { font-size:10.5px; font-weight:700; padding:3px 9px; border-radius:6px; letter-spacing:.5px; }
+  .cat-SOP { background:rgba(243,112,33,.16); color:var(--orange2); }
+  .cat-規章 { background:rgba(31,158,143,.16); color:#4ED6C4; }
+  .cat-案例 { background:rgba(108,140,255,.16); color:#9FB4FF; }
+  .cat-表單 { background:rgba(255,180,91,.16); color:var(--orange2); }
+  .cat-其他 { background:var(--surface2); color:var(--text-mut); }
+  .kb-item h4 { font-size:15px; font-weight:600; flex:1; }
+  .kb-item .kb-actions { display:flex; gap:6px; }
+  .kb-item p { font-size:12.5px; color:var(--text-mut); line-height:1.6; max-height:3.2em; overflow:hidden; }
+  .kb-item.expanded p { max-height:none; }
+  .kb-meta { font-size:11px; color:var(--text-dim); margin-top:8px; }
+  .icon-btn { background:transparent; border:1px solid var(--border); color:var(--text-mut); width:30px; height:30px; border-radius:7px; cursor:pointer; font-size:13px; transition:all .15s; display:flex; align-items:center; justify-content:center; }
+  .icon-btn:hover { border-color:var(--border-h); color:var(--text); }
+  .icon-btn.del:hover { color:var(--danger); border-color:rgba(255,90,110,.4); }
+  .empty { text-align:center; padding:54px 20px; color:var(--text-dim); font-size:14px; }
+  .empty .ei { font-size:40px; display:block; margin-bottom:12px; opacity:.5; }
+
+  /* ===== Modal ===== */
+  .modal-bg { position:fixed; inset:0; background:rgba(8,12,20,.7); display:none; align-items:center; justify-content:center; z-index:200; padding:20px; }
+  .modal-bg.show { display:flex; }
+  .modal { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:26px; width:100%; max-width:560px; max-height:88vh; overflow-y:auto; }
+  .modal h3 { font-size:18px; font-weight:700; margin-bottom:18px; }
+  .modal-actions { display:flex; gap:10px; justify-content:flex-end; margin-top:20px; }
+
+  /* ===== Coach (chat) ===== */
+  .coach-wrap { display:flex; flex-direction:column; height:calc(100vh - 260px); min-height:420px; }
+  .chat-scroll { flex:1; overflow-y:auto; padding:6px 4px 16px; display:flex; flex-direction:column; gap:14px; }
+  .msg { display:flex; gap:10px; max-width:88%; }
+  .msg.user { align-self:flex-end; flex-direction:row-reverse; }
+  .msg-av { width:34px; height:34px; border-radius:9px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:700; }
+  .msg.user .msg-av { background:var(--orange); color:#fff; }
+  .msg.ai .msg-av { background:var(--navy); color:var(--orange2); }
+  .msg-body { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:12px 15px; font-size:13.5px; line-height:1.7; white-space:pre-wrap; }
+  .msg.user .msg-body { background:var(--navy3); border-color:transparent; }
+  .msg-src { margin-top:10px; padding-top:9px; border-top:1px dashed var(--border); font-size:11.5px; color:var(--text-mut); }
+  .msg-src b { color:var(--orange2); font-weight:600; }
+  .chat-empty { text-align:center; padding:30px 20px; color:var(--text-dim); }
+  .chat-empty .ei { font-size:42px; display:block; margin-bottom:14px; opacity:.5; }
+  .suggest-chips { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-top:16px; }
+  .chip { background:var(--surface); border:1px solid var(--border); border-radius:18px; padding:7px 15px; font-size:12.5px; color:var(--text-mut); cursor:pointer; transition:all .15s; }
+  .chip:hover { border-color:var(--orange); color:var(--text); }
+  .chat-input-bar { display:flex; gap:10px; padding-top:14px; border-top:1px solid var(--border); }
+  .chat-input-bar textarea { flex:1; background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:11px 15px; color:var(--text); font-family:var(--font); font-size:14px; outline:none; resize:none; height:46px; line-height:1.5; }
+  .chat-input-bar textarea:focus { border-color:var(--orange); }
+  .kb-warn { background:rgba(243,112,33,.1); border:1px solid rgba(243,112,33,.3); border-radius:9px; padding:11px 15px; font-size:12.5px; color:var(--orange2); margin-bottom:14px; }
+  .typing { display:inline-flex; gap:4px; }
+  .typing span { width:7px; height:7px; border-radius:50%; background:var(--text-dim); animation:bounce 1.2s infinite; }
+  .typing span:nth-child(2){animation-delay:.15s} .typing span:nth-child(3){animation-delay:.3s}
+  @keyframes bounce { 0%,60%,100%{transform:translateY(0);opacity:.4} 30%{transform:translateY(-5px);opacity:1} }
+
+  /* ===== Progress / results (generator) ===== */
+  .progress-panel { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:22px; margin-top:22px; display:none; }
+  .progress-panel.show { display:block; }
+  .progress-header { display:flex; align-items:center; gap:10px; margin-bottom:16px; }
+  .spinner { width:20px; height:20px; border:2px solid var(--border); border-top-color:var(--orange); border-radius:50%; animation:spin .8s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .progress-title { font-size:14px; font-weight:500; }
+  .progress-steps { display:flex; flex-direction:column; gap:9px; }
+  .step { display:flex; align-items:center; gap:10px; font-size:13px; color:var(--text-mut); }
+  .step.active { color:var(--orange2); } .step.done { color:var(--teal); } .step.err { color:var(--danger); }
+  .step-ic { width:20px; height:20px; border-radius:50%; border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:11px; flex-shrink:0; }
+  .step.active .step-ic { border-color:var(--orange); color:var(--orange2); }
+  .step.done .step-ic { background:var(--teal); border-color:var(--teal); color:#fff; }
+  .step.err .step-ic { background:var(--danger); border-color:var(--danger); color:#fff; }
+  .mini-bar { margin-top:14px; height:3px; background:var(--surface2); border-radius:2px; overflow:hidden; }
+  .mini-bar-fill { height:100%; background:var(--orange); width:0%; transition:width .5s; }
+
+  .results-panel { margin-top:22px; display:none; }
+  .results-panel.show { display:block; }
+  .results-head { display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+  .results-head h3 { font-size:16px; font-weight:700; }
+  .badge-ok { padding:3px 11px; background:rgba(31,158,143,.16); color:#4ED6C4; border-radius:20px; font-size:11px; font-weight:700; }
+  .doc-cards { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .doc-card { background:var(--surface); border:1px solid var(--border); border-radius:11px; padding:16px; }
+  .doc-card-h { display:flex; align-items:center; gap:9px; margin-bottom:10px; }
+  .doc-ic { width:34px; height:34px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:16px; background:var(--navy); flex-shrink:0; }
+  .doc-card h4 { font-size:13.5px; font-weight:600; }
+  .doc-card .dd { font-size:11.5px; color:var(--text-mut); }
+  .doc-actions { display:flex; gap:7px; margin-top:11px; flex-wrap:wrap; }
+  .result-content { display:none; margin-top:11px; background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:13px; font-size:12.5px; line-height:1.75; color:var(--text-mut); white-space:pre-wrap; max-height:280px; overflow-y:auto; }
+  .result-content.show { display:block; }
+  .batch-bar { margin-top:15px; display:flex; gap:10px; align-items:center; padding:13px 16px; background:var(--surface); border:1px solid var(--border); border-radius:11px; flex-wrap:wrap; }
+  .batch-bar span { font-size:12.5px; color:var(--text-mut); flex:1; min-width:160px; }
+  .error-box { background:rgba(255,90,110,.1); border:1px solid rgba(255,90,110,.3); border-radius:8px; padding:11px 15px; font-size:13px; color:var(--danger); margin-top:12px; display:none; }
+  .error-box.show { display:block; }
+
+  /* settings */
+  .settings-sec { margin-bottom:26px; }
+  .settings-sec h3 { font-size:12px; font-weight:700; color:var(--text-mut); letter-spacing:.5px; margin-bottom:13px; }
+  .settings-row { display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border); gap:14px; }
+  .settings-row:last-child { border-bottom:none; }
+  .settings-label { font-size:14px; } .settings-desc { font-size:12px; color:var(--text-mut); margin-top:2px; }
+  .settings-row select, .settings-row input { background:var(--surface2); border:1px solid var(--border); color:var(--text); padding:8px 12px; border-radius:7px; font-family:var(--font); font-size:13px; outline:none; }
+
+  .toast { position:fixed; bottom:24px; right:24px; background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:12px 18px; font-size:13px; transform:translateY(80px); opacity:0; transition:all .3s; z-index:1000; max-width:300px; }
+  .toast.show { transform:translateY(0); opacity:1; }
+  .toast.ok { border-color:rgba(31,158,143,.4); color:#4ED6C4; }
+  .toast.err { border-color:rgba(255,90,110,.4); color:var(--danger); }
+
+  @media (max-width:720px){ .form-grid,.doc-cards,.engine-cards,.ov-stats{grid-template-columns:1fr} .nav{overflow-x:auto} }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo-mark">AI</div>
+  <h1>AI 企業知識庫暨智慧教育訓練平台<small>ENTERPRISE KNOWLEDGE & TRAINING PLATFORM · DEMO</small></h1>
+  <div class="header-right">
+    <div class="api-status" id="apiBadge" onclick="toggleSetup()">
+      <div class="dot" id="apiDot"></div><span id="apiTxt">設定 API Key</span>
+    </div>
+  </div>
+</div>
+
+<div class="nav">
+  <div class="nav-tab active" data-tab="overview" onclick="switchTab('overview')"><span class="ti">▦</span> 總覽</div>
+  <div class="nav-tab" data-tab="kb" onclick="switchTab('kb')"><span class="ti">📚</span> 企業知識庫 <span class="badge" id="kbCount">0</span></div>
+  <div class="nav-tab" data-tab="generate" onclick="switchTab('generate')"><span class="ti">🎓</span> 教材產生器</div>
+  <div class="nav-tab" data-tab="coach" onclick="switchTab('coach')"><span class="ti">🤖</span> AI 作業教練</div>
+  <div class="nav-tab" data-tab="settings" onclick="switchTab('settings')"><span class="ti">⚙</span> 設定</div>
+</div>
+
+<div class="container">
+
+  <!-- Setup banner -->
+  <div class="setup-banner" id="setupBanner">
+    <h3>設定 Gemini API Key</h3>
+    <div class="setup-row">
+      <input type="password" id="apiKeyInput" placeholder="貼上你的 Gemini API Key" autocomplete="off">
+      <button class="btn btn-pri" onclick="saveApiKey()">儲存</button>
+      <button class="btn btn-ghost" onclick="hideSetup()">稍後</button>
+    </div>
+    <div class="key-hint">免費取得：<a href="https://aistudio.google.com/app/apikey" target="_blank">aistudio.google.com → Get API Key</a> ｜ Gemini 免費額度足夠 DEMO 使用</div>
+  </div>
+
+  <!-- ============ OVERVIEW ============ -->
+  <div id="tab-overview">
+    <div class="ov-hero">
+      <h2>三大 AI 引擎，一座知識平台</h2>
+      <p>把分散在員工腦中的隱性知識「收進來」，用 AI「產出來」教材，再讓第一線員工隨時「問得到」。這是給總經理與部門主管的實機展示。</p>
+    </div>
+    <div class="engine-cards">
+      <div class="ecard" onclick="switchTab('kb')">
+        <div class="num">引擎 1</div>
+        <div class="eicon">📚</div>
+        <h3>AI 企業知識庫</h3>
+        <p>把 SOP、規章、歷史案例、表單統一沉澱為可查詢的數位資產，作為整個平台的知識來源。</p>
+        <div class="go">前往建置 →</div>
+      </div>
+      <div class="ecard" onclick="switchTab('generate')">
+        <div class="num">引擎 2</div>
+        <div class="eicon">🎓</div>
+        <h3>AI 智慧教育訓練引擎</h3>
+        <p>輸入工作內容，AI 自動產出 SOP 手冊、新人教材、檢核表、QA 與測驗題庫，並可一鍵存入知識庫。</p>
+        <div class="go">開始產生 →</div>
+      </div>
+      <div class="ecard" onclick="switchTab('coach')">
+        <div class="num">引擎 3</div>
+        <div class="eicon">🤖</div>
+        <h3>AI 營業所作業教練</h3>
+        <p>員工用口語提問，AI 只依據公司知識庫即時回答，並標示參考來源與注意事項。</p>
+        <div class="go">開始提問 →</div>
+      </div>
+    </div>
+    <div class="ov-stats">
+      <div class="stat"><div class="v" id="statKb">0</div><div class="l">知識庫條目</div></div>
+      <div class="stat"><div class="v" id="statDoc">0</div><div class="l">已產生教材</div></div>
+      <div class="stat"><div class="v" id="statChat">0</div><div class="l">教練問答次數</div></div>
+    </div>
+  </div>
+
+  <!-- ============ KNOWLEDGE BASE ============ -->
+  <div id="tab-kb" style="display:none">
+    <div class="page-head">
+      <div class="page-kicker">引 擎 1</div>
+      <div class="page-title">AI 企業知識庫</div>
+      <div class="page-sub">這裡存放的內容，就是「AI 作業教練」回答問題的依據。內容越完整，教練回答越準確。</div>
+    </div>
+    <div class="kb-toolbar">
+      <input class="kb-search" id="kbSearch" placeholder="🔍 搜尋知識庫…" oninput="renderKb()">
+      <select class="kb-filter" id="kbFilter" onchange="renderKb()">
+        <option value="">全部分類</option>
+        <option>SOP</option><option>規章</option><option>案例</option><option>表單</option><option>其他</option>
+      </select>
+      <button class="btn btn-pri" onclick="openKbModal()">+ 新增知識</button>
+    </div>
+    <div class="kb-list" id="kbList"></div>
+  </div>
+
+  <!-- ============ GENERATOR ============ -->
+  <div id="tab-generate" style="display:none">
+    <div class="page-head">
+      <div class="page-kicker">引 擎 2</div>
+      <div class="page-title">AI 智慧教育訓練引擎</div>
+      <div class="page-sub">填入工作內容，AI 一次產出完整教材。產出後可一鍵存入知識庫，供作業教練引用。</div>
+    </div>
+    <div class="form-grid">
+      <div class="field"><label>SOP 名稱 <span class="req">*</span></label><input type="text" id="sopName" placeholder="例：新客戶開戶流程"></div>
+      <div class="field"><label>部門 <span class="req">*</span></label><input type="text" id="department" placeholder="例：業務部、生產製造、倉儲物流"></div>
+      <div class="field form-full"><label>作業目的 <span class="req">*</span></label><input type="text" id="purpose" placeholder="例：確保新客戶開戶流程標準化，減少錯誤並提升效率"></div>
+      <div class="field form-full"><label>詳細流程說明 <span class="req">*</span></label>
+        <textarea id="description" placeholder="用日常語言描述流程，越詳細生成品質越好。"></textarea>
+        <div class="field-hint">建議 50 字以上</div>
+      </div>
+    </div>
+    <div class="section-divider"><span>生成選項</span></div>
+    <div class="field"><label>要生成哪些文件</label>
+      <div class="opt-row">
+        <label class="cbx"><input type="checkbox" name="docType" value="sop" checked><span class="ck">✓</span> SOP 正文</label>
+        <label class="cbx"><input type="checkbox" name="docType" value="checklist" checked><span class="ck">✓</span> 操作檢核表</label>
+        <label class="cbx"><input type="checkbox" name="docType" value="training" checked><span class="ck">✓</span> 新人訓練版</label>
+        <label class="cbx"><input type="checkbox" name="docType" value="risk" checked><span class="ck">✓</span> 風險識別表</label>
+      </div>
+    </div>
+    <div class="error-box" id="errorBox"></div>
+    <button class="btn btn-pri" id="generateBtn" onclick="generateSOP()" style="margin-top:20px; width:100%; padding:14px; font-size:15px;">✦ 生成教材</button>
+
+    <div class="progress-panel" id="progressPanel">
+      <div class="progress-header"><div class="spinner"></div><div class="progress-title" id="progressTitle">正在生成中...</div></div>
+      <div class="progress-steps" id="progressSteps"></div>
+      <div class="mini-bar"><div class="mini-bar-fill" id="progressFill"></div></div>
+    </div>
+
+    <div class="results-panel" id="resultsPanel">
+      <div class="results-head"><h3>生成完成</h3><span class="badge-ok">✓ 成功</span></div>
+      <div class="doc-cards" id="docCards"></div>
+      <div class="batch-bar">
+        <span>可個別下載，或把 SOP 正文一鍵存入知識庫供教練引用</span>
+        <button class="btn btn-navy btn-sm" onclick="saveGenToKb()">📥 存入知識庫</button>
+        <button class="btn btn-ghost btn-sm" onclick="downloadAll()">下載全部</button>
+        <button class="btn btn-ghost btn-sm" onclick="resetForm()">再生成</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ COACH ============ -->
+  <div id="tab-coach" style="display:none">
+    <div class="page-head">
+      <div class="page-kicker">引 擎 3</div>
+      <div class="page-title">AI 營業所作業教練</div>
+      <div class="page-sub">員工用口語提問，AI 只根據「企業知識庫」的內容回答，並標示參考來源。</div>
+    </div>
+    <div id="kbWarn" class="kb-warn" style="display:none">⚠ 知識庫目前是空的，教練無法回答。請先到「企業知識庫」新增內容。</div>
+    <div class="coach-wrap">
+      <div class="chat-scroll" id="chatScroll"></div>
+      <div class="chat-input-bar">
+        <textarea id="chatInput" placeholder="輸入問題，例如：冷藏庫即期品定義是什麼？" onkeydown="chatKey(event)"></textarea>
+        <button class="btn btn-pri" id="chatSend" onclick="sendChat()">送出</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SETTINGS ============ -->
+  <div id="tab-settings" style="display:none">
+    <div class="page-head"><div class="page-title">設定</div></div>
+    <div class="settings-sec">
+      <h3>AI 模型</h3>
+      <div class="settings-row">
+        <div><div class="settings-label">Gemini 模型</div><div class="settings-desc">設定 API Key 後會自動偵測你帳號可用的模型</div></div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <select id="modelSelect" style="min-width:200px;">
+            <option value="gemini-2.5-flash">gemini-2.5-flash</option>
+            <option value="gemini-3.5-flash">gemini-3.5-flash</option>
+            <option value="gemini-2.5-flash-lite">gemini-2.5-flash-lite</option>
+          </select>
+          <button class="btn btn-navy btn-sm" onclick="loadModels(true)">⟳ 偵測</button>
+        </div>
+      </div>
+      <div class="settings-row">
+        <div><div class="settings-label">生成語言</div></div>
+        <select id="langSelect"><option value="繁體中文">繁體中文</option><option value="簡體中文">簡體中文</option><option value="English">English</option></select>
+      </div>
+      <div class="settings-row">
+        <div><div class="settings-label">公司名稱</div><div class="settings-desc">帶入生成文件</div></div>
+        <input type="text" id="companyName" placeholder="例：光泉牧場" style="width:160px;">
+      </div>
+    </div>
+    <div class="settings-sec">
+      <h3>API Key</h3>
+      <div class="settings-row"><div><div class="settings-label">Gemini API Key</div><div class="settings-desc">僅儲存在本機瀏覽器，不會上傳</div></div><button class="btn btn-ghost btn-sm" onclick="toggleSetup()">修改</button></div>
+    </div>
+    <div class="settings-sec">
+      <h3>資料</h3>
+      <div class="settings-row"><div><div class="settings-label">載入示範知識（DEMO）</div><div class="settings-desc">放入簡報範例：冷藏即期品、帳結差異等</div></div><button class="btn btn-navy btn-sm" onclick="seedDemo(true)">載入示範</button></div>
+      <div class="settings-row"><div><div class="settings-label">清除所有資料</div><div class="settings-desc">知識庫、歷史、設定全部清除</div></div><button class="btn btn-ghost btn-sm" onclick="clearAll()" style="color:var(--danger);border-color:rgba(255,90,110,.3);">清除</button></div>
+    </div>
+    <div class="settings-sec">
+      <h3>關於</h3>
+      <div class="settings-row"><div class="settings-label">版本</div><span style="font-size:13px;color:var(--text-mut)">DEMO v2.0 · 本地三引擎版</span></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- KB Modal -->
+<div class="modal-bg" id="kbModal">
+  <div class="modal">
+    <h3 id="kbModalTitle">新增知識</h3>
+    <div class="field" style="margin-bottom:14px;"><label>標題 <span class="req">*</span></label><input type="text" id="kbTitle" placeholder="例：冷藏庫即期品定義與處理"></div>
+    <div class="field" style="margin-bottom:14px;"><label>分類</label>
+      <select id="kbCategory"><option>SOP</option><option>規章</option><option>案例</option><option>表單</option><option>其他</option></select>
+    </div>
+    <div class="field"><label>內容 <span class="req">*</span></label><textarea id="kbContent" style="min-height:160px;" placeholder="貼上完整內容。可以是 SOP 步驟、規章條文、歷史案例處理方式等。"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeKbModal()">取消</button>
+      <button class="btn btn-pri" onclick="saveKb()">儲存</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===================== STATE =====================
+let apiKey='', kb=[], history=[], chatLog=[], generatedDocs={}, lastGenData=null, editingKbId=null;
+let stats = { chat:0 };
+
+// ===================== INIT =====================
+function init(){
+  apiKey = localStorage.getItem('gemini_api_key')||'';
+  kb = JSON.parse(localStorage.getItem('kb_entries')||'[]');
+  history = JSON.parse(localStorage.getItem('gen_history')||'[]');
+  stats = JSON.parse(localStorage.getItem('platform_stats')||'{"chat":0}');
+  const st = JSON.parse(localStorage.getItem('platform_settings')||'{}');
+  if(apiKey){ document.getElementById('apiKeyInput').value=apiKey; setApiStatus(true); }
+  else { document.getElementById('setupBanner').classList.add('show'); }
+  if(st.model) document.getElementById('modelSelect').value=st.model;
+  if(st.lang) document.getElementById('langSelect').value=st.lang;
+  if(st.company) document.getElementById('companyName').value=st.company;
+
+  // first run: seed demo knowledge
+  if(!localStorage.getItem('demo_seeded')){ seedDemo(false); localStorage.setItem('demo_seeded','1'); }
+
+  ['modelSelect','langSelect','companyName'].forEach(id=>{
+    document.getElementById(id).addEventListener('change',saveSettings);
+  });
+  document.getElementById('companyName').addEventListener('input',saveSettings);
+
+  renderKb(); renderChat(); updateStats();
+  if(apiKey) loadModels(false);
+}
+
+function saveSettings(){
+  localStorage.setItem('platform_settings',JSON.stringify({
+    model:document.getElementById('modelSelect').value,
+    lang:document.getElementById('langSelect').value,
+    company:document.getElementById('companyName').value,
+  }));
+}
+function persist(){
+  localStorage.setItem('kb_entries',JSON.stringify(kb));
+  localStorage.setItem('gen_history',JSON.stringify(history));
+  localStorage.setItem('platform_stats',JSON.stringify(stats));
+}
+
+// ===================== API KEY =====================
+function saveApiKey(){
+  const k=document.getElementById('apiKeyInput').value.trim();
+  if(!k){ showToast('請輸入 API Key','err'); return; }
+  if(k.length<20){ showToast('Key 看起來太短，請確認是否完整複製','err'); return; }
+  apiKey=k; localStorage.setItem('gemini_api_key',k); setApiStatus(true);
+  document.getElementById('setupBanner').classList.remove('show'); showToast('API Key 已儲存，正在偵測可用模型…','ok');
+  loadModels(true);
+}
+
+// Fetch the models actually available to this API key, filter to generateContent-capable text models
+async function loadModels(notify){
+  if(!apiKey) return;
+  try{
+    const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+    if(!res.ok){ if(notify) showToast('偵測模型失敗（HTTP '+res.status+'），請確認 API Key','err'); return; }
+    const data=await res.json();
+    const models=(data.models||[])
+      .filter(m=>(m.supportedGenerationMethods||[]).includes('generateContent'))
+      .map(m=>m.name.replace(/^models\//,''))
+      // keep main Gemini text models, skip image/vision/embedding/experimental variants
+      .filter(n=>/^gemini-/.test(n) && !/(image|vision|embedding|aqa|tts|live|exp)/i.test(n));
+    if(!models.length){ if(notify) showToast('沒有偵測到可用的文字模型','err'); return; }
+    // sort: newer version numbers first, "flash" preferred near top
+    models.sort((a,b)=>{
+      const va=parseFloat((a.match(/gemini-([\d.]+)/)||[])[1]||0);
+      const vb=parseFloat((b.match(/gemini-([\d.]+)/)||[])[1]||0);
+      if(vb!==va) return vb-va;
+      return a.length-b.length;
+    });
+    const sel=document.getElementById('modelSelect');
+    const prev=sel.value;
+    sel.innerHTML=models.map(m=>`<option value="${m}">${m}</option>`).join('');
+    // restore previous choice if still available, else pick a flash model, else first
+    const saved=(JSON.parse(localStorage.getItem('platform_settings')||'{}')).model;
+    let pick = models.includes(saved)?saved : (models.includes(prev)?prev : (models.find(m=>/flash/.test(m)&&!/lite/.test(m))||models.find(m=>/flash/.test(m))||models[0]));
+    sel.value=pick; saveSettings();
+    if(notify) showToast('已偵測到 '+models.length+' 個可用模型，已選用 '+pick,'ok');
+  }catch(e){ if(notify) showToast('偵測模型發生錯誤：'+e.message,'err'); }
+}
+function setApiStatus(ok){ document.getElementById('apiDot').className='dot '+(ok?'ok':'err'); document.getElementById('apiTxt').textContent=ok?'Gemini 已連線':'設定 API Key'; }
+function toggleSetup(){ document.getElementById('setupBanner').classList.toggle('show'); }
+function hideSetup(){ document.getElementById('setupBanner').classList.remove('show'); }
+
+// ===================== TABS =====================
+function switchTab(name){
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===name));
+  ['overview','kb','generate','coach','settings'].forEach(t=>{ document.getElementById('tab-'+t).style.display = t===name?'block':'none'; });
+  if(name==='kb') renderKb();
+  if(name==='coach'){ renderChat(); document.getElementById('kbWarn').style.display = kb.length?'none':'block'; }
+  if(name==='overview') updateStats();
+}
+
+// ===================== STATS =====================
+function updateStats(){
+  document.getElementById('kbCount').textContent=kb.length;
+  document.getElementById('statKb').textContent=kb.length;
+  document.getElementById('statDoc').textContent=history.length;
+  document.getElementById('statChat').textContent=stats.chat||0;
+}
+
+// ===================== KNOWLEDGE BASE =====================
+function openKbModal(id){
+  editingKbId = id||null;
+  document.getElementById('kbModalTitle').textContent = id?'編輯知識':'新增知識';
+  if(id){ const e=kb.find(x=>x.id===id); document.getElementById('kbTitle').value=e.title; document.getElementById('kbCategory').value=e.category; document.getElementById('kbContent').value=e.content; }
+  else { document.getElementById('kbTitle').value=''; document.getElementById('kbCategory').value='SOP'; document.getElementById('kbContent').value=''; }
+  document.getElementById('kbModal').classList.add('show');
+}
+function closeKbModal(){ document.getElementById('kbModal').classList.remove('show'); editingKbId=null; }
+function saveKb(){
+  const title=document.getElementById('kbTitle').value.trim();
+  const category=document.getElementById('kbCategory').value;
+  const content=document.getElementById('kbContent').value.trim();
+  if(!title||!content){ showToast('請填寫標題與內容','err'); return; }
+  if(editingKbId){ const e=kb.find(x=>x.id===editingKbId); e.title=title; e.category=category; e.content=content; showToast('已更新','ok'); }
+  else { kb.unshift({id:Date.now(),title,category,content,createdAt:new Date().toLocaleDateString('zh-TW')}); showToast('已新增知識','ok'); }
+  persist(); closeKbModal(); renderKb(); updateStats();
+}
+function deleteKb(id){ if(!confirm('確定刪除這條知識？')) return; kb=kb.filter(x=>x.id!==id); persist(); renderKb(); updateStats(); }
+function toggleKbExpand(id){ const el=document.getElementById('kb-'+id); el.classList.toggle('expanded'); }
+
+function renderKb(){
+  const q=(document.getElementById('kbSearch').value||'').toLowerCase();
+  const f=document.getElementById('kbFilter').value;
+  const list=document.getElementById('kbList');
+  let items=kb.filter(e=>(!f||e.category===f)&&(!q||e.title.toLowerCase().includes(q)||e.content.toLowerCase().includes(q)));
+  if(!kb.length){ list.innerHTML='<div class="empty"><span class="ei">📚</span>知識庫是空的<br>點右上「+ 新增知識」開始建置，或到設定載入示範資料</div>'; updateStats(); return; }
+  if(!items.length){ list.innerHTML='<div class="empty"><span class="ei">🔍</span>找不到符合的知識</div>'; return; }
+  list.innerHTML=items.map(e=>`
+    <div class="kb-item" id="kb-${e.id}">
+      <div class="kb-item-head">
+        <span class="kb-cat cat-${e.category}">${e.category}</span>
+        <h4>${esc(e.title)}</h4>
+        <div class="kb-actions">
+          <button class="icon-btn" onclick="openKbModal(${e.id})" title="編輯">✎</button>
+          <button class="icon-btn del" onclick="deleteKb(${e.id})" title="刪除">🗑</button>
+        </div>
+      </div>
+      <p onclick="toggleKbExpand(${e.id})" style="cursor:pointer">${esc(e.content)}</p>
+      <div class="kb-meta">建立於 ${e.createdAt} ｜ 點內容可展開全文</div>
+    </div>`).join('');
+  updateStats();
+}
+
+// ===================== DEMO SEED =====================
+function seedDemo(manual){
+  const demo=[
+    {category:'規章',title:'冷藏庫即期品定義與處理',content:'依《冷鏈管理規範》第3條：商品保存期限剩餘 1/3（含）以內者，列為「即期品」。處理方式：(1) 立即貼上黃色即期標籤。(2) 移至即期品專區並登記於《即期品登記表》。(3) 優先安排出貨或促銷，不得與正常品混放。(4) 保存期限剩餘 1/7 以內者，須報請營業所主管確認是否報廢。相關表單：即期品登記表（表單-冷鏈-007）。'},
+    {category:'SOP',title:'帳結差異處理流程',content:'帳結差異依金額分兩種流程：【小額差異】差異金額 100 元（含）以下：(1) 填寫《差異說明單》。(2) 由組長覆核簽章。(3) 當日結報完成，不需上報。【大額差異】差異金額超過 100 元：(1) 填寫《差異說明單》並附佐證。(2) 組長初核後，當日上報區行政。(3) 區行政 1 個工作日內回覆處理方式。(4) 結案後歸檔。注意：連續 3 日出現差異者，須檢討作業流程。相關 SOP：SOP-帳結-012。'},
+    {category:'SOP',title:'便利購空架申訴流程',content:'門市發現便利購商品空架時：(1) 拍照記錄空架貨架與品項。(2) 於《空架申訴系統》填報，註明門市代號、品項、發現時間。(3) 系統自動通知該區業務與配送專員。(4) 配送專員須於 4 小時內補貨或回覆缺貨原因。(5) 業務追蹤補貨結果並回填系統。逾時未處理將列入當月服務指標考核。'},
+    {category:'SOP',title:'客戶退貨處理流程',content:'客戶申請退貨時：(1) 確認退貨原因（品質、效期、訂錯、其他）與商品狀態。(2) 品質或效期問題：拍照存證，填《退貨單》，全額退款並回收商品。(3) 訂錯或客戶因素：依合約退貨條款處理，可能酌收處理費。(4) 業務於 POS 系統登錄退貨，主管覆核。(5) 退貨商品依類別分流：可再售品入庫、不可售品報廢登記。注意：冷藏／冷凍品脫離冷鏈超過 30 分鐘一律不可再售。'},
+    {category:'案例',title:'案例：大型客戶月底大量叫貨之備貨經驗',content:'背景：某連鎖客戶習慣月底 28-30 號集中下大量訂單，常造成倉儲與配送壅塞。處理經驗：(1) 業務於月中主動與客戶確認月底預估量。(2) 提前 3 天通知倉儲預留庫存與棧板。(3) 配送排程提前協調加派車輛。(4) 與客戶溝通分批到貨，避免單日爆量。成效：客訴下降、配送準點率提升。建議：對所有月底集中叫貨客戶建立預估機制。'},
+  ];
+  if(manual){
+    // append demo entries not already present (by title)
+    let added=0;
+    demo.forEach(d=>{ if(!kb.some(e=>e.title===d.title)){ kb.unshift({id:Date.now()+Math.random(),...d,createdAt:new Date().toLocaleDateString('zh-TW')}); added++; } });
+    persist(); renderKb(); updateStats(); showToast(`已載入 ${added} 筆示範知識`,'ok');
+  } else {
+    if(kb.length===0){ kb = demo.map((d,i)=>({id:Date.now()+i,...d,createdAt:new Date().toLocaleDateString('zh-TW')})); persist(); }
+  }
+}
+
+// ===================== GENERATOR =====================
+function buildGenPrompt(data){
+  const lang=document.getElementById('langSelect').value||'繁體中文';
+  const company=document.getElementById('companyName').value||'本公司';
+  const base=`SOP 名稱：${data.sopName}\n部門：${data.department}\n作業目的：${data.purpose}\n流程說明：\n${data.description}`;
+  const defs={
+    sop:{tag:'SOP_CONTENT',label:'SOP 正文',ins:`生成完整 SOP：1.文件資訊 2.目的與範圍 3.工具與前置條件 4.詳細步驟(編號、動作、要點、預期結果) 5.注意事項(至少4條) 6.常見問題Q&A(至少3題)。關鍵詞用【】標示，1500-2000字。`},
+    checklist:{tag:'CHECKLIST_CONTENT',label:'操作檢核表',ins:`生成可列印檢核表：執行日期/人欄位、每步驟轉為☐勾選項、高風險標⚠️、每步預估時間、備註欄、簽名欄。`},
+    training:{tag:'TRAINING_CONTENT',label:'新人訓練版',ins:`生成新人教材：課程簡介與學習目標、名詞解釋(最簡單語言)、每步驟加「為什麼這樣做」、新人常犯錯誤(至少3項)、自我練習題(3題含解答)、遇到問題找誰。語氣親切鼓勵。`},
+    risk:{tag:'RISK_CONTENT',label:'風險識別表',ins:`生成風險表(表格)：風險描述|機率(高中低)|影響(高中低)|等級|預防措施|應急處置|負責角色。最後加整體小結與優先處理前3風險。`}
+  };
+  const sel=Array.from(document.querySelectorAll('input[name="docType"]:checked')).map(c=>c.value);
+  const sections=sel.map(t=>{const s=defs[t];return `## ${s.label}\n請將內容包在 <${s.tag}> 與 </${s.tag}> 之間。\n${s.ins}`;}).join('\n\n---\n\n');
+  const prompt=`你是擁有15年經驗的企業SOP顧問，服務過${company}。文件需簡潔專業實用，適合台灣中小企業。語言：${lang}。不要虛構資訊。\n\n作業資訊：\n${base}\n\n請依序生成以下${sel.length}份文件，每份用指定XML標籤包住：\n\n${sections}`;
+  return {prompt,sel,defs};
+}
+
+async function generateSOP(){
+  if(!apiKey){ showError('請先設定 Gemini API Key'); document.getElementById('setupBanner').classList.add('show'); return; }
+  const sopName=document.getElementById('sopName').value.trim();
+  const department=document.getElementById('department').value.trim();
+  const purpose=document.getElementById('purpose').value.trim();
+  const description=document.getElementById('description').value.trim();
+  if(!sopName||!department||!purpose||!description){ showError('請填寫所有必填欄位'); return; }
+  if(description.length<50){ showError('流程說明至少 50 字'); return; }
+  hideError(); generatedDocs={};
+  const sel=Array.from(document.querySelectorAll('input[name="docType"]:checked')).map(c=>c.value);
+  if(!sel.length){ showError('請至少選擇一種文件'); return; }
+  const data={sopName,department,purpose,description}; lastGenData=data;
+  const {prompt,sel:selTypes,defs}=buildGenPrompt(data);
+  const model=document.getElementById('modelSelect').value||'gemini-2.5-flash';
+
+  document.getElementById('generateBtn').disabled=true;
+  document.getElementById('progressPanel').classList.add('show');
+  document.getElementById('resultsPanel').classList.remove('show');
+  const labels={sop:'SOP 正文',checklist:'操作檢核表',training:'新人訓練版',risk:'風險識別表'};
+  document.getElementById('progressSteps').innerHTML=selTypes.map(k=>`<div class="step" id="step-${k}"><div class="step-ic">○</div><span>${labels[k]}</span></div>`).join('');
+
+  const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+  async function callRetry(pt,m,retries=3){
+    for(let i=0;i<retries;i++){ try{ return await callGemini(pt,m); }catch(e){
+      const is429=e.message.includes('頻率')||e.message.includes('429');
+      if(is429&&i<retries-1){ const w=(i+1)*10000; document.getElementById('progressTitle').textContent=`頻率限制，${w/1000}秒後重試(${i+1}/${retries})...`; await sleep(w);}else throw e; } }
+  }
+
+  document.getElementById('progressTitle').textContent='送出請求，AI 生成中（約 30-60 秒）...';
+  document.getElementById('progressFill').style.width='25%';
+  selTypes.forEach(k=>{ const el=document.getElementById('step-'+k); el.className='step active'; el.querySelector('.step-ic').textContent='…'; });
+
+  let raw='';
+  try{ raw=await callRetry(prompt,model); }
+  catch(e){ document.getElementById('progressPanel').classList.remove('show'); document.getElementById('generateBtn').disabled=false; showError('生成失敗：'+e.message); selTypes.forEach(k=>{const el=document.getElementById('step-'+k);el.className='step err';el.querySelector('.step-ic').textContent='✕';}); return; }
+
+  document.getElementById('progressFill').style.width='85%';
+  selTypes.forEach((k,idx)=>{
+    const tag=defs[k].tag;
+    const m=raw.match(new RegExp('<'+tag+'>([\\s\\S]*?)</'+tag+'>','i'));
+    if(m&&m[1].trim()){ generatedDocs[k]=m[1].trim(); }
+    else { const fb=fallbackExtract(raw,k,selTypes,labels); if(fb) generatedDocs[k]=fb; }
+    const el=document.getElementById('step-'+k);
+    if(generatedDocs[k]){ el.className='step done'; el.querySelector('.step-ic').textContent='✓'; }
+    else { el.className='step err'; el.querySelector('.step-ic').textContent='✕'; }
+  });
+  document.getElementById('progressFill').style.width='100%';
+  document.getElementById('progressPanel').classList.remove('show');
+  document.getElementById('generateBtn').disabled=false;
+
+  if(Object.keys(generatedDocs).length){
+    renderResults(); 
+    history.unshift({id:Date.now(),date:new Date().toLocaleString('zh-TW'),sopName,department,purpose,docs:{...generatedDocs}});
+    if(history.length>50) history=history.slice(0,50);
+    persist(); updateStats();
+  }
+}
+
+function fallbackExtract(raw,key,sel,labels){
+  const idx=sel.indexOf(key), next=sel[idx+1];
+  const sp=raw.indexOf(labels[key]); if(sp===-1) return null;
+  const ep=next?raw.indexOf(labels[next],sp+labels[key].length):raw.length;
+  const slice=raw.slice(sp+labels[key].length, ep>sp?ep:raw.length).trim();
+  return slice.length>100?slice:null;
+}
+
+async function callGemini(promptText,model){
+  const url=`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+  const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:promptText}]}],generationConfig:{temperature:0.3,maxOutputTokens:8192}})});
+  if(!res.ok){ const err=await res.json().catch(()=>({})); const msg=err?.error?.message||`HTTP ${res.status}`;
+    if(res.status===400) throw new Error('API Key 無效或請求格式錯誤');
+    if(res.status===403) throw new Error('API Key 沒有權限');
+    if(res.status===404) throw new Error('此模型已不可用，請到「設定」按「⟳ 偵測」更新可用模型');
+    if(res.status===429) throw new Error('呼叫頻率過高，請稍後再試');
+    throw new Error(msg); }
+  const data=await res.json();
+  const text=data?.candidates?.[0]?.content?.parts?.[0]?.text;
+  if(!text) throw new Error('AI 回傳空結果，請重試');
+  return text;
+}
+
+const docMeta={sop:{label:'SOP 正文',icon:'📄',desc:'完整標準作業程序書'},checklist:{label:'操作檢核表',icon:'✓',desc:'可列印逐步勾選表'},training:{label:'新人訓練版',icon:'👥',desc:'適合新進員工的教材'},risk:{label:'風險識別表',icon:'⚠️',desc:'風險點與應對措施'}};
+function renderResults(){
+  document.getElementById('docCards').innerHTML=Object.entries(generatedDocs).map(([k,c])=>{const m=docMeta[k];return `
+    <div class="doc-card">
+      <div class="doc-card-h"><div class="doc-ic">${m.icon}</div><div><h4>${m.label}</h4><div class="dd">${m.desc}</div></div></div>
+      <div class="doc-actions">
+        <button class="btn btn-ghost btn-sm" onclick="togglePrev('${k}')">預覽</button>
+        <button class="btn btn-navy btn-sm" onclick="downloadDoc('${k}')">下載 .txt</button>
+      </div>
+      <div class="result-content" id="prev-${k}">${esc(c)}</div>
+    </div>`;}).join('');
+  document.getElementById('resultsPanel').classList.add('show');
+  document.getElementById('resultsPanel').scrollIntoView({behavior:'smooth',block:'start'});
+  showToast('✦ 生成完成','ok');
+}
+function togglePrev(k){ document.getElementById('prev-'+k).classList.toggle('show'); }
+function downloadDoc(k){ const c=generatedDocs[k]; if(!c) return; const name=(lastGenData?.sopName||'SOP'); dl(`${name}_${docMeta[k].label}.txt`,c); showToast(docMeta[k].label+' 已下載','ok'); }
+function downloadAll(){ Object.keys(generatedDocs).forEach(k=>downloadDoc(k)); }
+function dl(fn,content){ const b=new Blob([content],{type:'text/plain;charset=utf-8'}); const u=URL.createObjectURL(b); const a=document.createElement('a'); a.href=u; a.download=fn; a.click(); URL.revokeObjectURL(u); }
+function saveGenToKb(){
+  if(!generatedDocs.sop){ showToast('沒有 SOP 正文可存','err'); return; }
+  kb.unshift({id:Date.now(),title:(lastGenData?.sopName||'未命名 SOP'),category:'SOP',content:generatedDocs.sop,createdAt:new Date().toLocaleDateString('zh-TW')});
+  persist(); renderKb(); updateStats(); showToast('已存入知識庫，作業教練現在可引用','ok');
+}
+function resetForm(){ ['sopName','department','purpose','description'].forEach(id=>document.getElementById(id).value=''); generatedDocs={}; lastGenData=null; document.getElementById('resultsPanel').classList.remove('show'); document.querySelectorAll('input[name="docType"]').forEach(c=>c.checked=true); window.scrollTo({top:0,behavior:'smooth'}); }
+
+// ===================== COACH =====================
+function chatKey(e){ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); sendChat(); } }
+function renderChat(){
+  const sc=document.getElementById('chatScroll');
+  if(!chatLog.length){
+    sc.innerHTML=`<div class="chat-empty"><span class="ei">🤖</span>我是你的 AI 作業教練。<br>我只會根據公司知識庫的內容回答。
+      <div class="suggest-chips">
+        <div class="chip" onclick="askChip(this)">冷藏庫即期品定義是什麼？</div>
+        <div class="chip" onclick="askChip(this)">帳結差異 100 元該如何處理？</div>
+        <div class="chip" onclick="askChip(this)">便利購空架申訴流程？</div>
+        <div class="chip" onclick="askChip(this)">客戶退貨流程為何？</div>
+      </div></div>`;
+    return;
+  }
+  sc.innerHTML=chatLog.map(m=>{
+    if(m.role==='user') return `<div class="msg user"><div class="msg-av">我</div><div class="msg-body">${esc(m.text)}</div></div>`;
+    if(m.role==='typing') return `<div class="msg ai"><div class="msg-av">AI</div><div class="msg-body"><div class="typing"><span></span><span></span><span></span></div></div></div>`;
+    const src=m.sources&&m.sources.length?`<div class="msg-src">📎 <b>參考來源：</b>${m.sources.map(esc).join('、')}</div>`:'';
+    return `<div class="msg ai"><div class="msg-av">AI</div><div class="msg-body">${esc(m.text)}${src}</div></div>`;
+  }).join('');
+  sc.scrollTop=sc.scrollHeight;
+}
+function askChip(el){ document.getElementById('chatInput').value=el.textContent; sendChat(); }
+
+async function sendChat(){
+  const input=document.getElementById('chatInput');
+  const q=input.value.trim(); if(!q) return;
+  if(!apiKey){ showToast('請先設定 API Key','err'); document.getElementById('setupBanner').classList.add('show'); return; }
+  if(!kb.length){ showToast('知識庫是空的，請先新增知識','err'); switchTab('kb'); return; }
+  input.value='';
+  chatLog.push({role:'user',text:q});
+  chatLog.push({role:'typing'});
+  renderChat();
+  document.getElementById('chatSend').disabled=true;
+
+  const model=document.getElementById('modelSelect').value||'gemini-2.5-flash';
+  const company=document.getElementById('companyName').value||'本公司';
+  const kbText=kb.map((e,i)=>`【知識${i+1}｜${e.category}】標題：${e.title}\n內容：${e.content}`).join('\n\n');
+  const prompt=`你是${company}的「AI 營業所作業教練」，協助第一線員工解答工作問題。
+你只能根據以下【公司知識庫】的內容回答，絕對不可以編造知識庫沒有的資訊。
+若知識庫沒有相關內容，請明確回答「目前知識庫沒有相關資料，建議洽詢主管或補充此知識」，不要自行推測。
+
+回答要求：
+1. 用口語、條列、好懂的方式回答，像在帶新人。
+2. 若有相關注意事項或風險，主動提醒。
+3. 回答最後務必另起一行，以這個格式標示你引用了哪些知識的「標題」：
+參考來源：標題A、標題B
+（若查無資料則寫「參考來源：無」）
+
+===== 公司知識庫 =====
+${kbText}
+===== 知識庫結束 =====
+
+員工問題：${q}`;
+
+  try{
+    const ans=await callGemini(prompt,model);
+    // parse sources
+    let text=ans, sources=[];
+    const m=ans.match(/參考來源[：:]\s*(.+)\s*$/);
+    if(m){ text=ans.slice(0,m.index).trim(); const s=m[1].trim(); if(s&&s!=='無') sources=s.split(/[、,，]/).map(x=>x.trim()).filter(Boolean); }
+    chatLog.pop(); // remove typing
+    chatLog.push({role:'ai',text,sources});
+    stats.chat=(stats.chat||0)+1; persist(); updateStats();
+  }catch(e){
+    chatLog.pop();
+    chatLog.push({role:'ai',text:'抱歉，發生錯誤：'+e.message,sources:[]});
+  }
+  document.getElementById('chatSend').disabled=false;
+  renderChat();
+}
+
+// ===================== UTILS =====================
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function showError(m){ const el=document.getElementById('errorBox'); el.textContent='⚠ '+m; el.classList.add('show'); }
+function hideError(){ document.getElementById('errorBox').classList.remove('show'); }
+function showToast(m,t){ const el=document.getElementById('toast'); el.textContent=m; el.className='toast show '+(t||'ok'); clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('show'),3000); }
+function clearAll(){ if(!confirm('確定清除所有資料？包含知識庫、歷史與設定。')) return; localStorage.clear(); kb=[]; history=[]; chatLog=[]; stats={chat:0}; apiKey=''; setApiStatus(false); document.getElementById('setupBanner').classList.add('show'); renderKb(); renderChat(); updateStats(); showToast('已清除','ok'); }
+
+init();
+</script>
+</body>
+</html>
